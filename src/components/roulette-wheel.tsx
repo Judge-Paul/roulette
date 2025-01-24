@@ -27,15 +27,24 @@ export default function RouletteWheel() {
 		let start: number | null = null;
 		const totalDuration = 5000;
 
+		// Randomly select a final segment index
+		const randomSegmentIndex = Math.floor(Math.random() * wheelData.length);
+		const finalAngle = randomSegmentIndex * SEGMENT_ANGLE;
+
 		const animate = (timestamp: number) => {
 			if (!start) start = timestamp;
 			const elapsed = timestamp - start;
 			const progress = Math.min(elapsed / totalDuration, 1);
 
+			// Easing function for smooth deceleration
 			const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 			const easedProgress = easeOut(progress);
 
-			const angle = (1 - easedProgress) * Math.PI * 20;
+			// Start with a high initial spin and gradually slow down to the final angle
+			const spinMultiplier = Math.PI * 20; // Arbitrary large spins at the start
+			const angle =
+				(1 - easedProgress) * spinMultiplier + easedProgress * finalAngle;
+
 			const radius = WHEEL_RADIUS + OUTER_WALL_WIDTH / 2;
 			const x = Math.cos(angle) * radius;
 			const y = Math.sin(angle) * radius;
@@ -44,6 +53,8 @@ export default function RouletteWheel() {
 
 			if (progress < 1) {
 				animationRef.current = requestAnimationFrame(animate);
+			} else {
+				console.log(`Ball landed on: ${wheelData[randomSegmentIndex].number}`);
 			}
 		};
 
