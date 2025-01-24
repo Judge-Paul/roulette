@@ -66,6 +66,10 @@ export default function RouletteWheel() {
 			if (progress < 1) {
 				animationRef.current = requestAnimationFrame(animate);
 			} else {
+				const adjustedAngle = finalAngle + SEGMENT_ANGLE / 2; // Center the ball visually
+				const finalX = Math.cos(adjustedAngle) * minRadius;
+				const finalY = Math.sin(adjustedAngle) * minRadius;
+				setBallPosition({ x: finalX, y: finalY });
 				// Log the final segment number
 				console.log(`Ball landed on: ${wheelData[randomSegmentIndex].number}`);
 			}
@@ -109,7 +113,7 @@ export default function RouletteWheel() {
 					/>
 					{/* Center wood with gold circle */}
 					<circle r={WHEEL_RADIUS - 30} fill="#8B4513" />
-					<circle r={WHEEL_RADIUS - 60} fill="gold" />
+					<circle r={WHEEL_RADIUS - 100} fill="gold" />
 					{/* Segment dividers */}
 					{Array.from({ length: 37 }).map((_, index) => {
 						const angle = index * SEGMENT_ANGLE;
