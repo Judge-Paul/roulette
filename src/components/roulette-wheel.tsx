@@ -18,6 +18,10 @@ export default function RouletteWheel() {
 
 	const spinWheel = () => {
 		if (spinning) return;
+		setBallPosition({
+			x: 0,
+			y: -(WHEEL_RADIUS + OUTER_WALL_WIDTH / 2),
+		});
 		setSpinning(true);
 		animateBall();
 		setTimeout(() => setSpinning(false), 5000);
