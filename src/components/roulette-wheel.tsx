@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { generateWheelData, IWheelSegment } from "@/utils/wheel";
 
 const OUTER_WALL_WIDTH = 20;
-const WHEEL_RADIUS = 200;
+const WHEEL_RADIUS = 150;
 const CENTER = WHEEL_RADIUS + 20;
 const SEGMENT_ANGLE = (2 * Math.PI) / 37;
 const BALL_RADIUS = 5;
@@ -45,7 +45,15 @@ export default function RouletteWheel() {
 			const angle =
 				(1 - easedProgress) * spinMultiplier + easedProgress * finalAngle;
 
-			const radius = WHEEL_RADIUS + OUTER_WALL_WIDTH / 2;
+			// Ball radius logic for smooth dropping
+			const maxRadius = WHEEL_RADIUS + OUTER_WALL_WIDTH / 2; // Outer radius
+			const minRadius = WHEEL_RADIUS - 10; // Inner target radius
+			const radius =
+				easedProgress < 0.9
+					? maxRadius
+					: maxRadius - ((easedProgress - 0.9) / 0.1) * (maxRadius - minRadius);
+
+			// Update ball position
 			const x = Math.cos(angle) * radius;
 			const y = Math.sin(angle) * radius;
 
@@ -54,6 +62,7 @@ export default function RouletteWheel() {
 			if (progress < 1) {
 				animationRef.current = requestAnimationFrame(animate);
 			} else {
+				// Log the final segment number
 				console.log(`Ball landed on: ${wheelData[randomSegmentIndex].number}`);
 			}
 		};
@@ -73,13 +82,12 @@ export default function RouletteWheel() {
 		<div className="flex flex-col items-center justify-center h-screen bg-gray-100">
 			<svg width={CENTER * 2} height={CENTER * 2} className="mb-4">
 				<g transform={`translate(${CENTER}, ${CENTER})`}>
+					{/* Outer wooden circle */}
 					<circle r={WHEEL_RADIUS + OUTER_WALL_WIDTH} fill="#8B4513" />
+					{/* Inner wheel */}
 					<circle r={WHEEL_RADIUS} fill="#3a3a3a" />
-					<g
-						style={{
-							transition: "transform 5s cubic-bezier(0.25, 0.1, 0.25, 1)",
-						}}
-					>
+					{/* Segments */}
+					<g>
 						{wheelData.map((segment, index) => (
 							<WheelSegment
 								key={segment.number}
@@ -87,14 +95,18 @@ export default function RouletteWheel() {
 								index={index}
 							/>
 						))}
-						<circle
-							cx={ballPosition.x}
-							cy={ballPosition.y}
-							r={BALL_RADIUS}
-							fill="white"
-						/>
 					</g>
-					<circle r={WHEEL_RADIUS - 30} fill="#3a3a3a" />
+					{/* Ball */}
+					<circle
+						cx={ballPosition.x}
+						cy={ballPosition.y}
+						r={BALL_RADIUS}
+						fill="white"
+					/>
+					{/* Center wood with gold circle */}
+					<circle r={WHEEL_RADIUS - 30} fill="#8B4513" />
+					<circle r={WHEEL_RADIUS - 60} fill="gold" />
+					{/* Segment dividers */}
 					{Array.from({ length: 37 }).map((_, index) => {
 						const angle = index * SEGMENT_ANGLE;
 						const innerX = Math.cos(angle) * WHEEL_RADIUS;
