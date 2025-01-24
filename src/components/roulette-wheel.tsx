@@ -1,23 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 import { generateWheelData, IWheelSegment } from "@/utils/wheel";
 
+const OUTER_WALL_WIDTH = 20;
 const WHEEL_RADIUS = 200;
 const CENTER = WHEEL_RADIUS + 20;
 const SEGMENT_ANGLE = (2 * Math.PI) / 37;
 const BALL_RADIUS = 5;
 
 export default function RouletteWheel() {
-	const [rotation, setRotation] = useState(0);
 	const [spinning, setSpinning] = useState(false);
-	const [ballPosition, setBallPosition] = useState({ x: 0, y: -190 });
+	const [ballPosition, setBallPosition] = useState({
+		x: 0,
+		y: -(WHEEL_RADIUS + OUTER_WALL_WIDTH / 2),
+	});
 	const wheelData = generateWheelData();
 	const animationRef = useRef<number>();
 
 	const spinWheel = () => {
 		if (spinning) return;
 		setSpinning(true);
-		const spinAngle = 360 * 5 + Math.random() * 360;
-		setRotation((prevRotation) => prevRotation + spinAngle);
 		animateBall();
 		setTimeout(() => setSpinning(false), 5000);
 	};
@@ -35,8 +36,9 @@ export default function RouletteWheel() {
 			const easedProgress = easeOut(progress);
 
 			const angle = (1 - easedProgress) * Math.PI * 20;
-			const x = Math.cos(angle) * (WHEEL_RADIUS - 10);
-			const y = Math.sin(angle) * (WHEEL_RADIUS - 10);
+			const radius = WHEEL_RADIUS + OUTER_WALL_WIDTH / 2;
+			const x = Math.cos(angle) * radius;
+			const y = Math.sin(angle) * radius;
 
 			setBallPosition({ x, y });
 
@@ -60,21 +62,20 @@ export default function RouletteWheel() {
 		<div className="flex flex-col items-center justify-center h-screen bg-gray-100">
 			<svg width={CENTER * 2} height={CENTER * 2} className="mb-4">
 				<g transform={`translate(${CENTER}, ${CENTER})`}>
-					<circle r={WHEEL_RADIUS} fill="brown" />
-					{wheelData.map((segment, index) => (
-						<WheelSegment
-							key={segment.number}
-							segment={segment}
-							index={index}
-						/>
-					))}
-					<circle r={WHEEL_RADIUS - 30} fill="brown" />
+					<circle r={WHEEL_RADIUS + OUTER_WALL_WIDTH} fill="#8B4513" />
+					<circle r={WHEEL_RADIUS} fill="#3a3a3a" />
 					<g
-						transform={`rotate(${rotation})`}
 						style={{
 							transition: "transform 5s cubic-bezier(0.25, 0.1, 0.25, 1)",
 						}}
 					>
+						{wheelData.map((segment, index) => (
+							<WheelSegment
+								key={segment.number}
+								segment={segment}
+								index={index}
+							/>
+						))}
 						<circle
 							cx={ballPosition.x}
 							cy={ballPosition.y}
@@ -82,12 +83,32 @@ export default function RouletteWheel() {
 							fill="white"
 						/>
 					</g>
-				</g>
-				<g transform={`translate(${CENTER}, ${CENTER})`}>
-					<polygon points="0,-10 10,0 0,10 -10,0" fill="white" />
+					<circle r={WHEEL_RADIUS - 30} fill="#3a3a3a" />
+					{Array.from({ length: 37 }).map((_, index) => {
+						const angle = index * SEGMENT_ANGLE;
+						const innerX = Math.cos(angle) * WHEEL_RADIUS;
+						const innerY = Math.sin(angle) * WHEEL_RADIUS;
+						const outerX = Math.cos(angle) * (WHEEL_RADIUS + OUTER_WALL_WIDTH);
+						const outerY = Math.sin(angle) * (WHEEL_RADIUS + OUTER_WALL_WIDTH);
+						return (
+							<line
+								key={index}
+								x1={innerX}
+								y1={innerY}
+								x2={outerX}
+								y2={outerY}
+								stroke="#5d3a1a"
+								strokeWidth="2"
+							/>
+						);
+					})}
 				</g>
 			</svg>
-			<button onClick={spinWheel} disabled={spinning}>
+			<button
+				onClick={spinWheel}
+				disabled={spinning}
+				className="bg-purple-500 py-4 px-8 text-white rounded-lg"
+			>
 				{spinning ? "Spinning..." : "Spin the Wheel"}
 			</button>
 		</div>
